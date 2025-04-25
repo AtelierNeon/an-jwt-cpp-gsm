@@ -20,7 +20,7 @@ option(JWT_EXTERNAL_PICOJSON "Use find_package() to locate picojson, provided to
 option(JWT_DISABLE_BASE64 "Do not include the base64 implementation from this library" OFF)
 option(JWT_DISABLE_PICOJSON "Do not provide the picojson template specialiaze" OFF)
 
-option(JWTCPP_WITHOUT_INSTALL_ALL "Build jwt-cpp without installing all artifacts." ON)
+option(JWTCPP_WITHOUT_INSTALL_ALL "Build jwt-cpp without installing all artifacts." OFF)
 option(JWTCPP_WITHOUT_INSTALL_FILES "Build jwt-cpp without installing files." OFF)
 option(JWTCPP_WITHOUT_INSTALL_HEADERS "Build jwt-cpp without installing headers." OFF)
 option(JWTCPP_WITHOUT_INSTALL_LIBRARIES "Build jwt-cpp without installing libraries." OFF)
