@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.12...3.15.0)
 
 # HUNTER_ENABLED is always set if this package is included in a project using hunter (HunterGate sets it) In this case
 # we will use hunter as well to stay consistent. If not the use can supply it on configure to force using hunter.
@@ -11,7 +11,7 @@ endif()
 
 project(jwt-cpp)
 
-option(JWT_BUILD_EXAMPLES "Configure CMake to build examples (or not)" ON)
+option(JWT_BUILD_EXAMPLES "Configure CMake to build examples (or not)" OFF)
 option(JWT_BUILD_TESTS "Configure CMake to build tests (or not)" OFF)
 option(JWT_ENABLE_COVERAGE "Enable code coverage testing" OFF)
 option(JWT_ENABLE_FUZZING "Enable fuzz testing" OFF)
@@ -19,6 +19,11 @@ option(JWT_ENABLE_FUZZING "Enable fuzz testing" OFF)
 option(JWT_EXTERNAL_PICOJSON "Use find_package() to locate picojson, provided to integrate with package managers" OFF)
 option(JWT_DISABLE_BASE64 "Do not include the base64 implementation from this library" OFF)
 option(JWT_DISABLE_PICOJSON "Do not provide the picojson template specialiaze" OFF)
+
+option(JWTCPP_WITHOUT_INSTALL_ALL "Build jwt-cpp without installing all artifacts." ON)
+option(JWTCPP_WITHOUT_INSTALL_FILES "Build jwt-cpp without installing files." OFF)
+option(JWTCPP_WITHOUT_INSTALL_HEADERS "Build jwt-cpp without installing headers." OFF)
+option(JWTCPP_WITHOUT_INSTALL_LIBRARIES "Build jwt-cpp without installing libraries." OFF)
 
 set(JWT_SSL_LIBRARY_OPTIONS OpenSSL LibreSSL wolfSSL)
 set(JWT_SSL_LIBRARY OpenSSL CACHE STRING "Determines which SSL library to build with")
@@ -49,7 +54,10 @@ endif()
 
 # Lookup dependencies
 if(${JWT_SSL_LIBRARY} MATCHES "OpenSSL")
-  find_package(OpenSSL 1.0.1 REQUIRED)
+  find_package(SiblingOpenSSL)
+  if(NOT OPENSSL_FOUND)
+    find_package(OpenSSL 1.0.1 REQUIRED)
+  endif()
 elseif(${JWT_SSL_LIBRARY} MATCHES "LibreSSL")
   find_package(LibreSSL 3.0.0 REQUIRED)
 elseif(${JWT_SSL_LIBRARY} MATCHES "wolfSSL")
@@ -118,15 +126,19 @@ configure_package_config_file(
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config-version.cmake VERSION 0.6.0
                                  COMPATIBILITY ExactVersion)
 
-install(TARGETS jwt-cpp EXPORT jwt-cpp-targets PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(EXPORT jwt-cpp-targets NAMESPACE jwt-cpp:: FILE jwt-cpp-targets.cmake
-        DESTINATION ${JWT_CMAKE_FILES_INSTALL_DIR})
-install(DIRECTORY ${JWT_INCLUDE_PATH}/jwt-cpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-if(NOT JWT_EXTERNAL_PICOJSON AND NOT JWT_DISABLE_PICOJSON)
-  install(FILES ${JWT_INCLUDE_PATH}/picojson/picojson.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/picojson)
+#install(TARGETS jwt-cpp EXPORT jwt-cpp-targets PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+#install(EXPORT jwt-cpp-targets NAMESPACE jwt-cpp:: FILE jwt-cpp-targets.cmake
+#        DESTINATION ${JWT_CMAKE_FILES_INSTALL_DIR})
+if(NOT JWTCPP_WITHOUT_INSTALL_HEADERS AND NOT JWTCPP_WITHOUT_INSTALL_ALL)
+  install(DIRECTORY ${JWT_INCLUDE_PATH}/jwt-cpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  if(NOT JWT_EXTERNAL_PICOJSON AND NOT JWT_DISABLE_PICOJSON)
+    install(FILES ${JWT_INCLUDE_PATH}/picojson/picojson.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/picojson)
+  endif()
 endif()
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config-version.cmake
-        DESTINATION ${JWT_CMAKE_FILES_INSTALL_DIR})
+if(NOT JWTCPP_WITHOUT_INSTALL_FILES AND NOT JWTCPP_WITHOUT_INSTALL_ALL)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp-config-version.cmake
+          DESTINATION ${JWT_CMAKE_FILES_INSTALL_DIR})
+endif()
 
 if(JWT_BUILD_EXAMPLES)
   add_subdirectory(example)
