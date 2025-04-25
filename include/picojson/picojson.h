@@ -369,7 +369,7 @@ template <> inline bool value::is<double>() const {
       ;
 }
 
-#define GET(ctype, var)                                                                                                            \
+#define PICOJSON_GET(ctype, var)                                                                                                   \
   template <> inline const ctype &value::get<ctype>() const {                                                                      \
     PICOJSON_ASSERT("type mismatch! call is<type>() before get<type>()" && is<ctype>());                                           \
     return var;                                                                                                                    \
@@ -378,35 +378,35 @@ template <> inline bool value::is<double>() const {
     PICOJSON_ASSERT("type mismatch! call is<type>() before get<type>()" && is<ctype>());                                           \
     return var;                                                                                                                    \
   }
-GET(bool, u_.boolean_)
-GET(std::string, *u_.string_)
-GET(array, *u_.array_)
-GET(object, *u_.object_)
+PICOJSON_GET(bool, u_.boolean_)
+PICOJSON_GET(std::string, *u_.string_)
+PICOJSON_GET(array, *u_.array_)
+PICOJSON_GET(object, *u_.object_)
 #ifdef PICOJSON_USE_INT64
-GET(double,
+PICOJSON_GET(double,
     (type_ == int64_type && (const_cast<value *>(this)->type_ = number_type, (const_cast<value *>(this)->u_.number_ = u_.int64_)),
      u_.number_))
-GET(int64_t, u_.int64_)
+PICOJSON_GET(int64_t, u_.int64_)
 #else
-GET(double, u_.number_)
+PICOJSON_GET(double, u_.number_)
 #endif
-#undef GET
+#undef PICOJSON_GET
 
-#define SET(ctype, jtype, setter)                                                                                                  \
+#define PICOJSON_SET(ctype, jtype, setter)                                                                                         \
   template <> inline void value::set<ctype>(const ctype &_val) {                                                                   \
     clear();                                                                                                                       \
     type_ = jtype##_type;                                                                                                          \
     setter                                                                                                                         \
   }
-SET(bool, boolean, u_.boolean_ = _val;)
-SET(std::string, string, u_.string_ = new std::string(_val);)
-SET(array, array, u_.array_ = new array(_val);)
-SET(object, object, u_.object_ = new object(_val);)
-SET(double, number, u_.number_ = _val;)
+PICOJSON_SET(bool, boolean, u_.boolean_ = _val;)
+PICOJSON_SET(std::string, string, u_.string_ = new std::string(_val);)
+PICOJSON_SET(array, array, u_.array_ = new array(_val);)
+PICOJSON_SET(object, object, u_.object_ = new object(_val);)
+PICOJSON_SET(double, number, u_.number_ = _val;)
 #ifdef PICOJSON_USE_INT64
-SET(int64_t, int64, u_.int64_ = _val;)
+PICOJSON_SET(int64_t, int64, u_.int64_ = _val;)
 #endif
-#undef SET
+#undef PICOJSON_SET
 
 #if PICOJSON_USE_RVALUE_REFERENCE
 #define MOVESET(ctype, jtype, setter)                                                                                              \
@@ -1169,14 +1169,14 @@ inline bool operator==(const value &x, const value &y) {
 inline bool operator!=(const value &x, const value &y) {
   return !(x == y);
 }
-}
+}  // namespace picojson
 
 #if !PICOJSON_USE_RVALUE_REFERENCE
 namespace std {
 template <> inline void swap(picojson::value &x, picojson::value &y) {
   x.swap(y);
 }
-}
+}  // namespace std
 #endif
 
 inline std::istream &operator>>(std::istream &is, picojson::value &x) {
